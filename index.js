@@ -9,7 +9,7 @@ const openai = new OpenAI({
 });
 
 async function apiCall() {
-  try {
+  
     // Use the OpenAI variable to call the chat completion method
     const chatCompletion = await openai.chat.completions.create({
       messages: [{ role: 'user', content: "Hello World" }],
@@ -18,9 +18,8 @@ async function apiCall() {
 
     // Log the completion choices
     console.log(chatCompletion.choices);
-  } catch (error) {
-    console.error('Error:', error);
+  
   }
-}
+
 
 apiCall();
