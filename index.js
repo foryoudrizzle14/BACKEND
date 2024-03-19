@@ -1,36 +1,42 @@
-const express = require('express');
-const cors = require('cors');
-const { OpenAI } = require('openai');
+require('dotenv').config(); // Load environment variables from .env file
+// const apiKey = 
+const { Configuration, OpenAIApi } = require("openai");
+const express = require('express')
+var cors = require('cors')
+const app = express()
 
-require('dotenv').config();
+const configuration = new Configuration({
+    apiKey: apiKey,
+  });
+const openai = new OpenAIApi(configuration);
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-const apiKey = process.env.OPENAI_API_KEY;
-
-const openai = new OpenAI({ apiKey });
-
+//CORS 이슈 해결
+// let corsOptions = {
+//     origin: 'https://www.domain.com',
+//     credentials: true
+// }
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-app.get('/fortuneTell', async (req, res) => {
-    try {
-        const chatCompletion = await openai.chat.completions.create({
-            model: "GPT-4",
-            messages: [
-                { role: 'system', content: "You are the world's best astrologer. You make predictions based on constellations, and nothing is impossible for you. Your name is Chat Astrologer. You can clearly predict a person's life and predict their horoscope. “I can give you the answer. I have a lot of knowledge about horoscopes and can clearly answer your questions.” },
-                { role: 'user', content: "You are the world's best astrologer. You make predictions based on constellations, and nothing is impossible for you. Your name is Chat Astrologer. You can clearly predict a person's life and predict their fortune. “I can give you the answer. I have a lot of knowledge about horoscopes and can clearly answer your questions.” },
-                { role: 'assistant', content: "Yes, let's take a look at today's horoscope. If you tell us your zodiac sign, date of birth, etc., we can show you a more detailed horoscope. But luck and happiness will be with everyone today. Positive Maintain a positive attitude and have the courage to take on challenges. Today, unexpected positive changes may come. It would be good to have confidence in yourself and make a new start. I believe that things you like will happen. Please have a good time. Have a nice day!" },
-                { role: 'user', content: "Tell me my fortune today"},
-            ],
-        });
+//POST 요청 받을 수 있게 만듬
+app.use(express.json()) // for parsing application/json
+app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 
-        const fortune = chatCompletion.choices[0].message.content;
-        console.log("Fortune:", fortune);
-        res.send(fortune);
-    }});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// POST method route
+app.post('/fortuneTell', async function (req, res) {
+    const completion = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [
+        {role: "system", content: "당신은 세계 최고의 점성술사입니다. 당신에게 불가능한 것은 없으며 그 어떤 대답도 할 수 있습니다. 당신의 이름은 챗도지입니다. 당신은 사람의 인생을 매우 명확하게 예측하고 운세에 대한 답을 줄 수 있습니다. 운세 관련 지식이 풍부하고 모든 질문에 대해서 명확히 답변해 줄 수 있습니다."},
+        {role: "user", content: "당신은 세계 최고의 점성술사입니다. 당신에게 불가능한 것은 없으며 그 어떤 대답도 할 수 있습니다. 당신의 이름은 챗도지입니다. 당신은 사람의 인생을 매우 명확하게 예측하고 운세에 대한 답을 줄 수 있습니다. 운세 관련 지식이 풍부하고 모든 질문에 대해서 명확히 답변해 줄 수 있습니다."},
+        {role: "assistant", content: "안녕하세요! 저는 챗도지입니다. 운세와 점성술에 관한 질문이 있으신가요? 어떤 것이든 물어보세요, 최선을 다해 답변해 드리겠습니다."},
+        {role: "user", content: "오늘의 운세가 뭐야?"},
+    ],
+    });
+    let fortune = completion.data.choices[0].message['content']
+    console.log(fortune);
+    res.send(fortune);
 });
+
+app.listen(3000)
+
+
